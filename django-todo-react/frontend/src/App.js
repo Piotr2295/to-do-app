@@ -1,50 +1,28 @@
 import React, { Component } from "react";
 import Modal from "./components/Modal";
+import axios from "axios";
 
-const todoItems = [
-  {
-    id: 1,
-    title: "Go to Market",
-    description: "Buy food rof guests",
-    completed: true
-  },
-  {
-    id: 2,
-    title: "Clean Garage",
-    description: "Clean garage",
-    completed: false
-  },
-];
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      modal: false,
       viewCompleted: false,
       activeItem: {
         title: "",
         description: "",
         completed: false
       },
-      todoList: todoItems
+      todoList: []
     };
   }
-  toggle = () => {
-    this.setState({ modal: !this.state.modal });
-  };
-  handleSubmit = item => {
-    this.toggle();
-    alert("save" + JSON.stringify(item));
-  };
-  handleDelete = item => {
-    alert("delete" + JSON.stringify(item));
-  };
-  createItem = () => {
-    const item = { title: "", description: "", completed: false };
-    this.setState({ activeItem: item, modal: !this.state.modal });
-  };
-  editItem = item => {
-    this.setState({ activeItem: item, modal: !this.state.modal });
+  componentDidMount() {
+    this.refreshList();
+  }
+  refreshList = () => {
+    axios
+      .get("http://localhost:8000/api/todos/")
+      .then(res => this.setState({ todoList: res.data }))
+      .catch(err => console.log(err));
   };
   displayCompleted = status => {
     if (status) {
@@ -93,17 +71,45 @@ class App extends Component {
             onClick={() => this.editItem(item)}
             className="btn btn-secondary mr-2"
           >
-            Edit
+            {" "}
+            Edit{" "}
           </button>
           <button
             onClick={() => this.handleDelete(item)}
             className="btn btn-danger"
           >
-            Delete
+            Delete{" "}
           </button>
         </span>
       </li>
     ));
+  };
+  toggle = () => {
+    this.setState({ modal: !this.state.modal });
+  };
+  handleSubmit = item => {
+    this.toggle();
+    if (item.id) {
+      axios
+        .put(`http://localhost:8000/api/todos/${item.id}/`, item)
+        .then(res => this.refreshList());
+      return;
+    }
+    axios
+      .post("http://localhost:8000/api/todos/", item)
+      .then(res => this.refreshList());
+  };
+  handleDelete = item => {
+    axios
+      .delete(`http://localhost:8000/api/todos/${item.id}`)
+      .then(res => this.refreshList());
+  };
+  createItem = () => {
+    const item = { title: "", description: "", completed: false };
+    this.setState({ activeItem: item, modal: !this.state.modal });
+  };
+  editItem = item => {
+    this.setState({ activeItem: item, modal: !this.state.modal });
   };
   render() {
     return (

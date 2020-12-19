@@ -25,6 +25,7 @@
           value = e.target.checked;
         }
         const activeItem = { ...this.state.activeItem, [name]: value };
+        console.log(activeItem);
         this.setState({ activeItem });
       };
       render() {
